@@ -1,3 +1,11 @@
+## Building
+
+```sh
+ansible-builder build --tag manageiq-ansible-ee
+```
+
+## Execution
+
 With ansible-runner:
 
 ```sh
@@ -15,4 +23,10 @@ With ansible-runner via an execution environment:
 
 ```sh
 docker run --rm -it -v./dir:/workspace ghcr.io/ansible-community/community-ee-base:latest ansible-runner run /workspace --ident result --playbook subdir/test_localhost.yml
+```
+
+With a custom built execution environment:
+
+```sh
+docker run --rm -it -v./dir:/workspace localhost/manageiq-ansible-ee:latest ansible-runner run /workspace --ident result --playbook subdir/test_localhost.yml
 ```
