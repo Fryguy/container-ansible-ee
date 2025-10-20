@@ -1,0 +1,6 @@
+- name: Gather and print local facts
+  hosts: localhost
+  tasks:
+  - name: Print message
+    ansible.builtin.debug:
+      msg: Hello world
