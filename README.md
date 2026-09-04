@@ -1,3 +1,7 @@
+# container-ansible-ee
+
+Container for the ManageIQ Ansible Execution Environment for use by Embedded Ansible.
+
 ## Building
 
 ```sh
