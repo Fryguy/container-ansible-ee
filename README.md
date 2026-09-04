@@ -1,7 +1,7 @@
 ## Building
 
 ```sh
-ansible-builder build --tag manageiq-ansible-ee
+ansible-builder build -vvv --extra-build-cli-args="--platform=linux/amd64" --tag manageiq-ansible-ee
 ```
 
 This will build `localhost/manageiq-ansible-ee:latest`
@@ -24,5 +24,5 @@ ansible-navigator run subdir/test_localhost.yml --execution-environment-image lo
 With ansible-runner via an execution environment:
 
 ```sh
-docker run --rm -it -v./test/dir:/workspace localhost/manageiq-ansible-ee:latest ansible-runner run /workspace --ident result --playbook subdir/test_localhost.yml
+docker run --rm -it --platform=linux/amd64 -v./test/dir:/workspace localhost/manageiq-ansible-ee:latest ansible-runner run /workspace --ident result --playbook subdir/test_localhost.yml
 ```
