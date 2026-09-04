@@ -30,3 +30,7 @@ With ansible-runner via an execution environment:
 ```sh
 docker run --rm -it --platform=linux/amd64 -v./test/dir:/workspace localhost/manageiq-ansible-ee:latest ansible-runner run /workspace --ident result --playbook subdir/test_localhost.yml
 ```
+
+## License
+
+This project is available as open source under the terms of the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
