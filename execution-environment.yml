@@ -1,55 +1,34 @@
----
 version: 3
-
-build_arg_defaults:
-  ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: '--pre'
-
-dependencies:
-  ansible_core:
-    package_pip: ansible-core>=2.21.3
-  ansible_runner:
-    package_pip: ansible-runner
-  # galaxy: requirements.yml
-  python:
-  - six
-  - psutil
-  # system: bindep.txt
-  exclude:
-    python:
-    - docker
-    system:
-    - python3-Cython
-
 images:
   base_image:
     name: registry.access.redhat.com/ubi10/ubi:latest
-    # Other available base images:
-    #   - quay.io/rockylinux/rockylinux:9
-    #   - quay.io/centos/centos:stream9
-    #   - registry.fedoraproject.org/fedora:38
-    #   - registry.redhat.io/ansible-automation-platform-23/ee-minimal-rhel8:latest
-    #     (needs an account)
-
-# Custom package manager path for the RHEL based images
-# options:
-#  package_manager_path: /usr/bin/microdnf
-
-# additional_build_files:
-#     - src: files/ansible.cfg
-#       dest: configs
-
-# additional_build_steps:
-#   prepend_base:
-#     - RUN echo This is a prepend base command!
-#     # Enable Non-default stream before packages provided by it can be installed. (optional)
-#     # - RUN $PKGMGR module enable postgresql:15 -y
-#     # - RUN $PKGMGR install -y postgresql
-#   prepend_galaxy:
-#     - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
-
-#   prepend_final: |
-#     RUN whoami
-#     RUN cat /etc/os-release
-#   append_final:
-#     - RUN echo This is a post-install command!
-#     - RUN ls -la /etc
+dependencies:
+  ansible_core:
+    package_pip: ansible-core
+  ansible_runner:
+    package_pip: ansible-runner
+  python:
+  - pywinrm
+  - aiobotocore>=3.9.0 # Set a higher minimum to avoid excessive backtracking for aws packages
+  - boto3==1.43.56 # Pin to avoid excessive backtracking for aws packages
+  system:
+  - python3-devel [compile] # For compiling ovirt-engine-sdk-python
+  galaxy:
+    collections:
+    - amazon.aws
+    - ansible.netcommon
+    - ansible.utils
+    - awx.awx
+    - azure.azcollection
+    - cisco.intersight
+    - community.aws
+    - community.okd
+    - community.vmware
+    - google.cloud
+    - kubernetes.core
+    - openstack.cloud
+    - ovirt.ovirt
+    - theforeman.foreman
+  exclude:
+    system:
+    - qemu-img # from collection ovirt.ovirt - not available in ubi10
