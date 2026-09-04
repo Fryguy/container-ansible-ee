@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ARCH=${ARCH:=$(uname -m | sed 's/x86_64/amd64/')}
+ansible-builder build -vvv --extra-build-cli-args="--platform=linux/$ARCH" --tag manageiq-ansible-ee
