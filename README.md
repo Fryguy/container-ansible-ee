@@ -8,9 +8,15 @@ Container for the ManageIQ Ansible Execution Environment for use by Embedded Ans
 bin/build
 ```
 
-This will build a local container under `localhost/manageiq-ansible-ee:latest`
+This will build a container tagged `docker.io/manageiq/ansible-ee` by default.
 
-By default, this will build using the local architecture, but if you want to build for a different architecture, use the ARCH env var.
+To override the tag, set the `TAG` env var:
+
+```sh
+TAG=localhost/my-ansible-ee bin/build
+```
+
+By default, this will build using the local architecture. To target a different architecture, use the `ARCH` env var:
 
 ```sh
 ARCH=amd64 bin/build
@@ -28,13 +34,13 @@ With ansible-navigator running the test project directly using the execution env
 
 ```sh
 cd test/dir/project
-ansible-navigator run subdir/test_localhost.yml --execution-environment-image localhost/manageiq-ansible-ee:latest --mode stdout --pull-policy missing
+ansible-navigator run subdir/test_localhost.yml --execution-environment-image docker.io/manageiq/ansible-ee:latest --mode stdout --pull-policy missing
 ```
 
 With the execution environment running the test project directly:
 
 ```sh
-docker run --rm -it --platform=linux/amd64 -v./test/dir:/runner localhost/manageiq-ansible-ee:latest ansible-runner run /runner --ident result --playbook subdir/test_localhost.yml
+docker run --rm -it --platform=linux/amd64 -v./test/dir:/runner docker.io/manageiq/ansible-ee:latest ansible-runner run /runner --ident result --playbook subdir/test_localhost.yml
 ```
 
 ## License
