@@ -1,6 +1,7 @@
 context/
 
 # Test artifacts
+test/dir/.ansible/
 test/dir/artifacts/
 test/dir/project/ansible-navigator.log
 test/dir/project/subdir/*-artifact-*.json
