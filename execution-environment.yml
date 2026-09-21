@@ -36,8 +36,12 @@ dependencies:
   exclude:
     system:
     - qemu-img # from collection ovirt.ovirt - not available in ubi10
+additional_build_files:
+- src: ansible.cfg
+  dest: configs
 additional_build_steps:
   append_final:
+  - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
   # Use /runner as HOME, matching the ansible-runner/AWX EE convention. The entrypoint
   # script also defaults to /runner for arbitrary UIDs, so this stays consistent across
   # UID 1000 (docker/podman) and random UIDs (Kubernetes/OpenShift).
