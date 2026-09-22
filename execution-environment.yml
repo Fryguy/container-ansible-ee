@@ -51,6 +51,8 @@ additional_build_steps:
   - RUN mkdir -p /var/ansible/local_tmp /var/ansible/remote_tmp && chgrp -R 0 /var/ansible && chmod -R ug+rwx /var/ansible
   - ENV ANSIBLE_LOCAL_TEMP=/var/ansible/local_tmp
   - ENV ANSIBLE_REMOTE_TEMP=/var/ansible/remote_tmp
+  # Force color output by default; callers can override with ANSIBLE_FORCE_COLOR=0
+  - ENV ANSIBLE_FORCE_COLOR=1
   # Remove __pycache__
   - RUN find / -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true
   # Remove unnecessary large files
