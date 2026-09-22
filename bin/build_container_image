@@ -1,0 +1,18 @@
+#!/bin/bash
+
+REGISTRY=${REGISTRY:-"docker.io"}
+ORGANIZATION=${ORGANIZATION:-"manageiq"}
+IMAGE_NAME=$REGISTRY/$ORGANIZATION/ansible-ee
+
+set -e
+
+ARCH=${ARCH:=$(uname -m | sed 's/x86_64/amd64/')}
+ansible-builder build -vvv --extra-build-cli-args="--platform=linux/$ARCH" --squash new --tag "$IMAGE_NAME:latest"
+
+[ -z "$REGISTRY_USERNAME" ] && exit 0
+
+echo "$REGISTRY_PASSWORD" | docker login $REGISTRY -u $REGISTRY_USERNAME --password-stdin
+
+docker push $IMAGE_NAME:latest
+
+set +e

@@ -1,0 +1,21 @@
+name: CI
+on:
+  pull_request:
+  push:
+  schedule:
+  - cron: 0 0 * * 0
+  workflow_dispatch:
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: Install ansible-builder
+      run: pip install ansible-builder
+    - name: Set up registry credentials
+      if: github.ref == 'refs/heads/master' && github.repository_owner == 'ManageIQ'
+      run: |
+        echo "REGISTRY_USERNAME=${{ secrets.DOCKER_REGISTRY_USERNAME }}" >> $GITHUB_ENV
+        echo "REGISTRY_PASSWORD=${{ secrets.DOCKER_REGISTRY_PASSWORD }}" >> $GITHUB_ENV
+    - name: Run container build script
+      run: bin/build_container_image

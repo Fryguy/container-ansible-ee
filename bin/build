@@ -1,5 +1,0 @@
-#!/bin/bash
-
-ARCH=${ARCH:=$(uname -m | sed 's/x86_64/amd64/')}
-TAG=${TAG:=docker.io/manageiq/ansible-ee}
-ansible-builder build -vvv --extra-build-cli-args="--platform=linux/$ARCH" --squash new --tag "$TAG"
