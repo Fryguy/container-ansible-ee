@@ -5,7 +5,7 @@ Container for the ManageIQ Ansible Execution Environment for use by Embedded Ans
 ## Building
 
 ```sh
-bin/build
+bin/build_container_image
 ```
 
 This will build a container tagged `docker.io/manageiq/ansible-ee` by default.
@@ -13,13 +13,13 @@ This will build a container tagged `docker.io/manageiq/ansible-ee` by default.
 To override the tag, set the `TAG` env var:
 
 ```sh
-TAG=localhost/my-ansible-ee bin/build
+TAG=localhost/my-ansible-ee bin/build_container_image
 ```
 
 By default, this will build using the local architecture. To target a different architecture, use the `ARCH` env var:
 
 ```sh
-ARCH=amd64 bin/build
+ARCH=amd64 bin/build_container_image
 ```
 
 ## Usage
@@ -36,65 +36,86 @@ Its layout is:
 └── .ansible/   ← Ansible controller scratch space (pre-created in the image)
 ```
 
-Mount just the playbook directory to `/runner/project` and let ansible-runner manage the rest of
-`/runner` at runtime:
-
-```sh
-docker run --rm -it --platform=linux/amd64 \
-  -v /path/to/your/playbooks:/runner/project \
-  docker.io/manageiq/ansible-ee:latest \
-  ansible-runner run /runner --ident result --playbook subdir/playbook.yml
-```
-
-The `--playbook` path is relative to `/runner/project`. If the playbook is at the root of the
-project directory, omit the subdirectory prefix.
-
-To also capture artifacts (job events, stdout, rc, etc.) on the host, mount a full private data
-directory (containing a `project/` subdirectory) to `/runner` instead:
+Mount a private data directory (containing a `project/` subdirectory) to `/runner` and invoke
+`ansible-runner`:
 
 ```sh
 docker run --rm -it --platform=linux/amd64 \
   -v /path/to/your/private-data-dir:/runner \
   docker.io/manageiq/ansible-ee:latest \
-  ansible-runner run /runner --ident result --playbook subdir/playbook.yml
+  ansible-runner run /runner --ident result --playbook playbook.yml
 ```
 
-Artifacts will be written to `/path/to/your/private-data-dir/artifacts/result/` on the host.
+The `--playbook` path is relative to `/runner/project`.
+
+Artifacts (job events, stdout, rc, etc.) are written to
+`/path/to/your/private-data-dir/artifacts/result/` on the host.
+
+### ansible-galaxy role/collection installation
+
+If your playbook or role requires additional roles from a `requirements.yml`, the caller should
+chain `ansible-galaxy install` and `ansible-runner` together with `sh -c` in a single
+`docker run`. The image provides `ansible-galaxy` but does not invoke it automatically.
+
+**Playbook with a `requirements.yml` at `project/roles/requirements.yml`:**
+
+```sh
+docker run --rm --platform=linux/amd64 \
+  -v /path/to/private-data-dir:/runner \
+  docker.io/manageiq/ansible-ee:latest \
+  sh -c "ansible-galaxy install -r /runner/project/roles/requirements.yml -p /runner/project/roles \
+      && ansible-runner run /runner --ident result --playbook playbook.yml"
+```
+
+**Running a role directly with a `requirements.yml` at `roles/requirements.yml`:**
+
+```sh
+docker run --rm --platform=linux/amd64 \
+  -v /path/to/private-data-dir:/runner \
+  docker.io/manageiq/ansible-ee:latest \
+  sh -c "ansible-galaxy install -r /runner/roles/requirements.yml -p /runner/roles \
+      && ansible-runner run /runner --ident result --role my.role --roles-path /runner/roles"
+```
 
 ## Testing
 
-The `test/dir` directory is a ready-made ansible-runner private data directory. Its `project/`
-subdirectory contains a test playbook nested under `subdir/` to exercise non-root playbook paths.
+The `test/data` directory contains test playbooks and supporting files used by the Bats test suite.
 
-Mount only the project directory (no artifact capture):
+To run a quick smoke test manually, copy a playbook into a temp runner directory and exec the EE:
 
 ```sh
-docker run --rm -it --platform=linux/amd64 \
-  -v ./test/dir/project:/runner/project \
+RUNNER=$(mktemp -d)
+mkdir -p "$RUNNER/project"
+cp test/data/hello_world.yml "$RUNNER/project/"
+docker run --rm --platform=linux/amd64 \
+  -v "$RUNNER:/runner" \
   docker.io/manageiq/ansible-ee:latest \
-  ansible-runner run /runner --ident result --playbook subdir/test_localhost.yml
+  ansible-runner run /runner --ident result --playbook hello_world.yml
 ```
 
-Mount the full private data directory to capture artifacts under `test/dir/artifacts/`:
+To run the Bats test suite:
 
 ```sh
-docker run --rm -it --platform=linux/amd64 \
-  -v ./test/dir:/runner \
-  docker.io/manageiq/ansible-ee:latest \
-  ansible-runner run /runner --ident result --playbook subdir/test_localhost.yml
+# Install bats and plugins (if not already installed)
+brew install bats-core
+git clone https://github.com/bats-core/bats-support ~/.bats/libs/bats-support
+git clone https://github.com/bats-core/bats-assert ~/.bats/libs/bats-assert
+
+# Run tests
+bats test/ee_tests.bats
 ```
 
-Without a container, using a local ansible-runner installation:
+To run a specific test:
 
 ```sh
-ansible-runner run ./test/dir --ident result --playbook subdir/test_localhost.yml
+bats --filter "runs a playbook" test/ee_tests.bats
 ```
 
 With ansible-navigator using the execution environment:
 
 ```sh
-cd test/dir/project
-ansible-navigator run subdir/test_localhost.yml \
+cd test/data
+ansible-navigator run hello_world.yml \
   --execution-environment-image docker.io/manageiq/ansible-ee:latest \
   --mode stdout --pull-policy missing
 ```

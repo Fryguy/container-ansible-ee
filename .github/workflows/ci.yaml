@@ -19,3 +19,10 @@ jobs:
         echo "REGISTRY_PASSWORD=${{ secrets.DOCKER_REGISTRY_PASSWORD }}" >> $GITHUB_ENV
     - name: Run container build script
       run: bin/build_container_image
+    - name: Setup Bats
+      id: setup-bats
+      uses: bats-core/bats-action@4.0.0
+    - name: Run tests
+      run: bats test/*.bats
+      env:
+        BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
