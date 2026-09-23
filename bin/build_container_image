@@ -7,7 +7,10 @@ IMAGE_NAME=$REGISTRY/$ORGANIZATION/ansible-ee
 set -e
 
 ARCH=${ARCH:=$(uname -m | sed 's/x86_64/amd64/')}
-ansible-builder build -vvv --extra-build-cli-args="--platform=linux/$ARCH" --squash new --tag "$IMAGE_NAME:latest"
+CONTAINER_RUNTIME_ARG=""
+[ -n "$CI" ] && CONTAINER_RUNTIME_ARG="--container-runtime docker"
+
+ansible-builder build -vvv $CONTAINER_RUNTIME_ARG --extra-build-cli-args="--platform=linux/$ARCH" --squash new --tag "$IMAGE_NAME:latest"
 
 [ -z "$REGISTRY_USERNAME" ] && exit 0
 

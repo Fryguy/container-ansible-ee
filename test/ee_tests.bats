@@ -14,16 +14,22 @@ ARCH=${ARCH:=$(uname -m | sed 's/x86_64/amd64/')}
 DATA_DIR="${BATS_TEST_DIRNAME}/data"
 
 setup_file() {
-  # Check if the EE image exists; if not, skip tests with a message
   if ! docker image inspect "${EE_IMAGE}" >/dev/null 2>&1; then
     echo "${EE_IMAGE} not found. Build it first with 'bin/build_container_image' or set EE_IMAGE to an existing image." >&3
-    skip "EE image not available"
+    return 1
   fi
 }
 
 setup() {
-  # Populate the ansible-runner project directory with all test data
   cp -r "${DATA_DIR}/." "${BATS_TEST_TMPDIR}/project"
+  if [ -n "${CI}" ]; then
+    sudo chgrp -R 0 "${BATS_TEST_TMPDIR}"
+    chmod -R g+rwx "${BATS_TEST_TMPDIR}"
+  fi
+}
+
+teardown() {
+  [ -n "${CI}" ] && sudo rm -rf "${BATS_TEST_TMPDIR}"
 }
 
 exec_ee_raw() {
