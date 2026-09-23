@@ -12,13 +12,10 @@ jobs:
     - uses: actions/checkout@v7
     - name: Install ansible-builder
       run: pip install ansible-builder
-    - name: Set up registry credentials
-      if: github.ref == 'refs/heads/master' && github.repository_owner == 'ManageIQ'
-      run: |
-        echo "REGISTRY_USERNAME=${{ secrets.DOCKER_REGISTRY_USERNAME }}" >> $GITHUB_ENV
-        echo "REGISTRY_PASSWORD=${{ secrets.DOCKER_REGISTRY_PASSWORD }}" >> $GITHUB_ENV
-    - name: Run container build script
+    - name: Build container image
       run: bin/build_container_image
+      env:
+        IMAGE_TAG: ${{ github.sha }}
     - name: Setup Bats
       id: setup-bats
       uses: bats-core/bats-action@4.0.0
@@ -26,3 +23,11 @@ jobs:
       run: bats test/*.bats
       env:
         BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+        EE_IMAGE: docker.io/manageiq/ansible-ee:${{ github.sha }}
+    - name: Push container image
+      if: github.ref == 'refs/heads/master' && github.repository_owner == 'ManageIQ'
+      run: bin/push_container_image
+      env:
+        IMAGE_TAG: ${{ github.sha }}
+        REGISTRY_USERNAME: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+        REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}

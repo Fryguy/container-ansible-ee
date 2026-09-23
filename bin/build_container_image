@@ -3,6 +3,7 @@
 REGISTRY=${REGISTRY:-"docker.io"}
 ORGANIZATION=${ORGANIZATION:-"manageiq"}
 IMAGE_NAME=$REGISTRY/$ORGANIZATION/ansible-ee
+IMAGE_TAG=${IMAGE_TAG:-"latest"}
 
 set -e
 
@@ -10,12 +11,4 @@ ARCH=${ARCH:=$(uname -m | sed 's/x86_64/amd64/')}
 CONTAINER_RUNTIME_ARG=""
 [ -n "$CI" ] && CONTAINER_RUNTIME_ARG="--container-runtime docker"
 
-ansible-builder build -vvv $CONTAINER_RUNTIME_ARG --extra-build-cli-args="--platform=linux/$ARCH" --squash new --tag "$IMAGE_NAME:latest"
-
-[ -z "$REGISTRY_USERNAME" ] && exit 0
-
-echo "$REGISTRY_PASSWORD" | docker login $REGISTRY -u $REGISTRY_USERNAME --password-stdin
-
-docker push $IMAGE_NAME:latest
-
-set +e
+ansible-builder build -vvv $CONTAINER_RUNTIME_ARG --extra-build-cli-args="--platform=linux/$ARCH" --squash new --tag "$IMAGE_NAME:$IMAGE_TAG"
